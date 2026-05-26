@@ -1,0 +1,838 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>税务计算助手</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: #f5f7fa;
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 480px;
+            margin: 0 auto;
+            background: white;
+            min-height: 100vh;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+        }
+
+        .header {
+            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .header p {
+            font-size: 14px;
+            opacity: 0.9;
+            margin-top: 5px;
+        }
+
+        .nav {
+            display: flex;
+            justify-content: space-around;
+            padding: 15px;
+            background: white;
+            border-bottom: 1px solid #e5e7eb;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .nav-item {
+            padding: 10px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 14px;
+        }
+
+        .nav-item:hover {
+            background: #f3f4f6;
+        }
+
+        .nav-item.active {
+            background: #3b82f6;
+            color: white;
+        }
+
+        .content {
+            padding: 20px;
+        }
+
+        .tax-type-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .tax-card {
+            background: white;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .tax-card:hover {
+            border-color: #3b82f6;
+            transform: translateY(-2px);
+        }
+
+        .tax-card.active {
+            border-color: #3b82f6;
+            background: #eff6ff;
+        }
+
+        .tax-card-icon {
+            font-size: 32px;
+            margin-bottom: 8px;
+        }
+
+        .tax-card-title {
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #374151;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #3b82f6;
+        }
+
+        .form-select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 16px;
+            background: white;
+            cursor: pointer;
+        }
+
+        .form-select:focus {
+            outline: none;
+            border-color: #3b82f6;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+        }
+
+        .btn-secondary {
+            background: #6b7280;
+            margin-top: 10px;
+        }
+
+        .result-card {
+            background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+            border: 2px solid #3b82f6;
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .result-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #1d4ed8;
+            margin-bottom: 15px;
+        }
+
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #93c5fd;
+        }
+
+        .result-item:last-child {
+            border-bottom: none;
+        }
+
+        .result-label {
+            color: #475569;
+        }
+
+        .result-value {
+            font-weight: bold;
+            color: #dc2626;
+        }
+
+        .result-value.positive {
+            color: #059669;
+        }
+
+        .details-section {
+            margin-top: 20px;
+            background: #f9fafb;
+            border-radius: 8px;
+            padding: 15px;
+        }
+
+        .details-title {
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #374151;
+        }
+
+        .detail-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px dashed #e5e7eb;
+            font-size: 14px;
+        }
+
+        .detail-item:last-child {
+            border-bottom: none;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .tab-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 10px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            background: white;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .tab-btn.active {
+            background: #3b82f6;
+            color: white;
+            border-color: #3b82f6;
+        }
+
+        @media (max-width: 480px) {
+            .tax-type-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>税务计算助手</h1>
+            <p>专业 · 精准 · 便捷</p>
+        </div>
+
+        <div class="nav">
+            <div class="nav-item active" onclick="showTab('home')">首页</div>
+            <div class="nav-item" onclick="showTab('history')">历史</div>
+            <div class="nav-item" onclick="showTab('about')">关于</div>
+        </div>
+
+        <div class="content">
+            <div id="home-tab">
+                <h3 style="margin-bottom: 15px; color: #1f2937;">选择税种</h3>
+                <div class="tax-type-grid">
+                    <div class="tax-card active" onclick="selectTaxType('personal')">
+                        <div class="tax-card-icon">👤</div>
+                        <div class="tax-card-title">个人所得税</div>
+                    </div>
+                    <div class="tax-card" onclick="selectTaxType('vat')">
+                        <div class="tax-card-icon">💹</div>
+                        <div class="tax-card-title">增值税</div>
+                    </div>
+                    <div class="tax-card" onclick="selectTaxType('corporate')">
+                        <div class="tax-card-icon">🏢</div>
+                        <div class="tax-card-title">企业所得税</div>
+                    </div>
+                    <div class="tax-card" onclick="selectTaxType('property')">
+                        <div class="tax-card-icon">🏠</div>
+                        <div class="tax-card-title">房产税</div>
+                    </div>
+                    <div class="tax-card" onclick="selectTaxType('stamp')">
+                        <div class="tax-card-icon">📑</div>
+                        <div class="tax-card-title">印花税</div>
+                    </div>
+                    <div class="tax-card" onclick="selectTaxType('deed')">
+                        <div class="tax-card-icon">🏡</div>
+                        <div class="tax-card-title">契税</div>
+                    </div>
+                </div>
+
+                <div id="personal-form">
+                    <div class="tab-buttons">
+                        <button class="tab-btn active" onclick="selectPersonalType('salary')">工资薪金</button>
+                        <button class="tab-btn" onclick="selectPersonalType('yearlyBonus')">全年奖</button>
+                        <button class="tab-btn" onclick="selectPersonalType('serviceFee')">劳务报酬</button>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">收入金额（元）</label>
+                        <input type="number" class="form-input" id="personal-income" placeholder="请输入收入金额">
+                    </div>
+
+                    <div class="form-group" id="salary-deductions">
+                        <label class="form-label">社会保险（元）</label>
+                        <input type="number" class="form-input" id="social-insurance" placeholder="请输入社保金额" value="0">
+                    </div>
+
+                    <div class="form-group" id="salary-deductions2">
+                        <label class="form-label">住房公积金（元）</label>
+                        <input type="number" class="form-input" id="housing-fund" placeholder="请输入公积金金额" value="0">
+                    </div>
+
+                    <div class="form-group" id="salary-deductions3">
+                        <label class="form-label">专项附加扣除（元）</label>
+                        <input type="number" class="form-input" id="special-deductions" placeholder="请输入专项附加扣除" value="0">
+                    </div>
+
+                    <button class="btn" onclick="calculatePersonalTax()">计算个人所得税</button>
+                </div>
+
+                <div id="vat-form" class="hidden">
+                    <div class="tab-buttons">
+                        <button class="tab-btn active" onclick="selectAmountType('taxIncluded')">含税金额</button>
+                        <button class="tab-btn" onclick="selectAmountType('taxExcluded')">不含税金额</button>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">金额（元）</label>
+                        <input type="number" class="form-input" id="vat-amount" placeholder="请输入金额">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">税率</label>
+                        <select class="form-select" id="vat-rate">
+                            <option value="0.13">13%</option>
+                            <option value="0.09">9%</option>
+                            <option value="0.06">6%</option>
+                            <option value="0.03">3%</option>
+                            <option value="0.01">1%</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">城建税税率</label>
+                        <select class="form-select" id="urban-rate">
+                            <option value="0.07">7%（市区）</option>
+                            <option value="0.05">5%（县镇）</option>
+                            <option value="0.01">1%（其他）</option>
+                        </select>
+                    </div>
+
+                    <button class="btn" onclick="calculateVat()">计算增值税</button>
+                </div>
+
+                <div id="corporate-form" class="hidden">
+                    <div class="tab-buttons">
+                        <button class="tab-btn" onclick="selectCorporateType('general')">一般企业</button>
+                        <button class="tab-btn active" onclick="selectCorporateType('smallProfit')">小型微利企业</button>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">利润总额（元）</label>
+                        <input type="number" class="form-input" id="corporate-profit" placeholder="请输入利润总额">
+                    </div>
+
+                    <button class="btn" onclick="calculateCorporateTax()">计算企业所得税</button>
+                </div>
+
+                <div id="other-form" class="hidden">
+                    <div class="form-group">
+                        <label class="form-label">税种名称</label>
+                        <input type="text" class="form-input" id="other-tax-name" readonly>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">计税依据（元）</label>
+                        <input type="number" class="form-input" id="other-base" placeholder="请输入计税依据">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">税率</label>
+                        <select class="form-select" id="other-rate">
+                            <option value="0.12">12%（房产税从租）</option>
+                            <option value="0.012">1.2%（房产税从价）</option>
+                            <option value="0.001">0.1%（印花税）</option>
+                            <option value="0.0005">0.05%（印花税）</option>
+                            <option value="0.03">3%（契税）</option>
+                            <option value="0.04">4%（契税）</option>
+                        </select>
+                    </div>
+
+                    <button class="btn" onclick="calculateOtherTax()">计算税费</button>
+                </div>
+
+                <div id="result-container" class="hidden">
+                    <div class="result-card" id="result-card"></div>
+                </div>
+            </div>
+
+            <div id="history-tab" class="hidden">
+                <h3 style="margin-bottom: 15px; color: #1f2937;">计算历史</h3>
+                <div id="history-list"></div>
+                <button class="btn btn-secondary" onclick="clearHistory()">清空历史</button>
+            </div>
+
+            <div id="about-tab" class="hidden">
+                <h3 style="margin-bottom: 15px; color: #1f2937;">关于</h3>
+                <div style="line-height: 1.8;">
+                    <p><strong>税务计算助手</strong></p>
+                    <p style="margin-top: 10px;">本应用提供专业的中国税务计算功能，支持：</p>
+                    <ul style="margin-top: 10px; padding-left: 20px;">
+                        <li>个人所得税（工资薪金、全年奖、劳务报酬）</li>
+                        <li>增值税及附加</li>
+                        <li>企业所得税（含小微企业优惠）</li>
+                        <li>房产税、印花税、契税</li>
+                    </ul>
+                    <p style="margin-top: 10px;">⚠️ 本计算器仅供参考，实际纳税以税务局为准！</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentTaxType = 'personal';
+        let personalType = 'salary';
+        let amountType = 'taxIncluded';
+        let corporateType = 'smallProfit';
+        let otherTaxType = 'property';
+        let history = JSON.parse(localStorage.getItem('taxHistory') || '[]');
+
+        const taxPolicies = {
+            personalIncome: {
+                standardDeduction: 60000,
+                brackets: [
+                    { min: 0, max: 36000, rate: 0.03, deduction: 0 },
+                    { min: 36000, max: 144000, rate: 0.1, deduction: 2520 },
+                    { min: 144000, max: 300000, rate: 0.2, deduction: 16920 },
+                    { min: 300000, max: 420000, rate: 0.25, deduction: 31920 },
+                    { min: 420000, max: 660000, rate: 0.3, deduction: 52920 },
+                    { min: 660000, max: 960000, rate: 0.35, deduction: 85920 },
+                    { min: 960000, max: null, rate: 0.45, deduction: 181920 }
+                ]
+            },
+            corporateIncome: {
+                generalRate: 0.25,
+                smallProfitEnterprise: {
+                    threshold: 3000000,
+                    rate: 0.2,
+                    reduction: 0.25
+                }
+            },
+            additional: {
+                educationSurcharge: 0.03,
+                localEducationSurcharge: 0.02
+            }
+        };
+
+        function formatCurrency(amount) {
+            return amount.toLocaleString('zh-CN', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+        }
+
+        function formatPercent(rate) {
+            return (rate * 100).toFixed(2) + '%';
+        }
+
+        function showTab(tab) {
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+            event.target.classList.add('active');
+
+            document.getElementById('home-tab').classList.add('hidden');
+            document.getElementById('history-tab').classList.add('hidden');
+            document.getElementById('about-tab').classList.add('hidden');
+            document.getElementById(tab + '-tab').classList.remove('hidden');
+
+            if (tab === 'history') {
+                renderHistory();
+            }
+        }
+
+        function selectTaxType(type) {
+            currentTaxType = type;
+            document.querySelectorAll('.tax-card').forEach(el => el.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+
+            document.getElementById('personal-form').classList.add('hidden');
+            document.getElementById('vat-form').classList.add('hidden');
+            document.getElementById('corporate-form').classList.add('hidden');
+            document.getElementById('other-form').classList.add('hidden');
+            document.getElementById('result-container').classList.add('hidden');
+
+            if (type === 'personal') {
+                document.getElementById('personal-form').classList.remove('hidden');
+            } else if (type === 'vat') {
+                document.getElementById('vat-form').classList.remove('hidden');
+            } else if (type === 'corporate') {
+                document.getElementById('corporate-form').classList.remove('hidden');
+            } else {
+                otherTaxType = type;
+                const taxNames = {
+                    property: '房产税',
+                    stamp: '印花税',
+                    deed: '契税'
+                };
+                document.getElementById('other-tax-name').value = taxNames[type];
+                document.getElementById('other-form').classList.remove('hidden');
+            }
+        }
+
+        function selectPersonalType(type) {
+            personalType = type;
+            document.querySelectorAll('#personal-form .tab-btn').forEach(el => el.classList.remove('active'));
+            event.target.classList.add('active');
+
+            const deductions = ['salary-deductions', 'salary-deductions2', 'salary-deductions3'];
+            deductions.forEach(id => {
+                const el = document.getElementById(id);
+                if (type === 'salary') {
+                    el.classList.remove('hidden');
+                } else {
+                    el.classList.add('hidden');
+                }
+            });
+        }
+
+        function selectAmountType(type) {
+            amountType = type;
+            document.querySelectorAll('#vat-form .tab-btn').forEach(el => el.classList.remove('active'));
+            event.target.classList.add('active');
+        }
+
+        function selectCorporateType(type) {
+            corporateType = type;
+            document.querySelectorAll('#corporate-form .tab-btn').forEach(el => el.classList.remove('active'));
+            event.target.classList.add('active');
+        }
+
+        function calculatePersonalTax() {
+            const income = parseFloat(document.getElementById('personal-income').value) || 0;
+            const socialInsurance = parseFloat(document.getElementById('social-insurance').value) || 0;
+            const housingFund = parseFloat(document.getElementById('housing-fund').value) || 0;
+            const specialDeductions = parseFloat(document.getElementById('special-deductions').value) || 0;
+
+            let taxableIncome, taxAmount, taxRate, deduction, netIncome;
+            const details = [];
+
+            if (personalType === 'salary') {
+                const totalDeductions = socialInsurance + housingFund + taxPolicies.personalIncome.standardDeduction + specialDeductions;
+                taxableIncome = Math.max(0, income - totalDeductions);
+                const bracket = taxPolicies.personalIncome.brackets.find(
+                    b => taxableIncome > b.min && (b.max === null || taxableIncome <= b.max)
+                ) || taxPolicies.personalIncome.brackets[0];
+                taxRate = bracket.rate;
+                deduction = bracket.deduction;
+                taxAmount = Math.max(0, taxableIncome * taxRate - deduction);
+                netIncome = income - socialInsurance - housingFund - taxAmount;
+
+                details.push({ name: '本期收入', value: income });
+                details.push({ name: '社会保险', value: -socialInsurance });
+                details.push({ name: '住房公积金', value: -housingFund });
+                details.push({ name: '专项附加扣除', value: -specialDeductions });
+                details.push({ name: '应纳税所得额', value: taxableIncome });
+                details.push({ name: '适用税率', value: taxRate, isRate: true });
+                details.push({ name: '速算扣除数', value: deduction });
+                details.push({ name: '应纳税额', value: taxAmount });
+                details.push({ name: '税后收入', value: netIncome, isPositive: true });
+
+            } else if (personalType === 'yearlyBonus') {
+                const monthlyIncome = income / 12;
+                const bracket = taxPolicies.personalIncome.brackets.find(
+                    b => monthlyIncome > b.min && (b.max === null || monthlyIncome <= b.max)
+                ) || taxPolicies.personalIncome.brackets[0];
+                taxRate = bracket.rate;
+                deduction = bracket.deduction;
+                taxAmount = income * taxRate - deduction;
+                netIncome = income - taxAmount;
+
+                details.push({ name: '全年一次性奖金', value: income });
+                details.push({ name: '平均每月收入', value: monthlyIncome });
+                details.push({ name: '适用税率', value: taxRate, isRate: true });
+                details.push({ name: '速算扣除数', value: deduction });
+                details.push({ name: '应纳税额', value: taxAmount });
+                details.push({ name: '税后收入', value: netIncome, isPositive: true });
+
+            } else {
+                const expenseDeduction = income <= 4000 ? 800 : income * 0.2;
+                taxableIncome = income - expenseDeduction;
+                const bracket = taxPolicies.personalIncome.brackets.find(
+                    b => taxableIncome > b.min && (b.max === null || taxableIncome <= b.max)
+                ) || taxPolicies.personalIncome.brackets[0];
+                taxRate = bracket.rate;
+                deduction = bracket.deduction;
+                taxAmount = taxableIncome * taxRate - deduction;
+                netIncome = income - taxAmount;
+
+                details.push({ name: '劳务报酬收入', value: income });
+                details.push({ name: '费用扣除', value: expenseDeduction });
+                details.push({ name: '应纳税所得额', value: taxableIncome });
+                details.push({ name: '应纳税额', value: taxAmount });
+                details.push({ name: '税后收入', value: netIncome, isPositive: true });
+            }
+
+            renderResult('个人所得税', [{
+                label: '应纳税额',
+                value: formatCurrency(taxAmount),
+                isRed: true
+            }, {
+                label: '税后收入',
+                value: formatCurrency(netIncome),
+                isRed: false
+            }], details);
+
+            addToHistory({
+                type: '个人所得税',
+                subtype: personalType,
+                input: income,
+                result: taxAmount,
+                time: new Date().toLocaleString()
+            });
+        }
+
+        function calculateVat() {
+            const amount = parseFloat(document.getElementById('vat-amount').value) || 0;
+            const rate = parseFloat(document.getElementById('vat-rate').value);
+            const urbanRate = parseFloat(document.getElementById('urban-rate').value);
+
+            let taxExcludedAmount, vatAmount;
+
+            if (amountType === 'taxIncluded') {
+                taxExcludedAmount = amount / (1 + rate);
+                vatAmount = amount - taxExcludedAmount;
+            } else {
+                taxExcludedAmount = amount;
+                vatAmount = amount * rate;
+            }
+
+            const urbanMaintenanceAmount = vatAmount * urbanRate;
+            const educationSurchargeAmount = vatAmount * taxPolicies.additional.educationSurcharge;
+            const localEducationSurchargeAmount = vatAmount * taxPolicies.additional.localEducationSurcharge;
+            const totalAmount = vatAmount + urbanMaintenanceAmount + educationSurchargeAmount + localEducationSurchargeAmount;
+
+            const details = [
+                { name: amountType === 'taxIncluded' ? '含税金额' : '不含税金额', value: amount },
+                { name: '不含税金额', value: taxExcludedAmount },
+                { name: '增值税额', value: vatAmount },
+                { name: '城建税', value: urbanMaintenanceAmount },
+                { name: '教育费附加', value: educationSurchargeAmount },
+                { name: '地方教育附加', value: localEducationSurchargeAmount },
+                { name: '合计应纳税额', value: totalAmount }
+            ];
+
+            renderResult('增值税及附加', [{
+                label: '增值税额',
+                value: formatCurrency(vatAmount),
+                isRed: true
+            }, {
+                label: '附加税费',
+                value: formatCurrency(urbanMaintenanceAmount + educationSurchargeAmount + localEducationSurchargeAmount),
+                isRed: true
+            }, {
+                label: '合计应纳税额',
+                value: formatCurrency(totalAmount),
+                isRed: true
+            }], details);
+
+            addToHistory({
+                type: '增值税',
+                input: amount,
+                result: totalAmount,
+                time: new Date().toLocaleString()
+            });
+        }
+
+        function calculateCorporateTax() {
+            const profit = parseFloat(document.getElementById('corporate-profit').value) || 0;
+
+            let taxableIncome, taxAmount, effectiveRate;
+
+            if (corporateType === 'smallProfit') {
+                const { threshold, rate, reduction } = taxPolicies.corporateIncome.smallProfitEnterprise;
+                if (profit <= threshold) {
+                    taxableIncome = profit * reduction;
+                    taxAmount = taxableIncome * rate;
+                    effectiveRate = rate * reduction;
+                } else {
+                    taxableIncome = profit;
+                    taxAmount = profit * taxPolicies.corporateIncome.generalRate;
+                    effectiveRate = taxPolicies.corporateIncome.generalRate;
+                }
+            } else {
+                taxableIncome = profit;
+                taxAmount = profit * taxPolicies.corporateIncome.generalRate;
+                effectiveRate = taxPolicies.corporateIncome.generalRate;
+            }
+
+            const details = [
+                { name: '利润总额', value: profit },
+                { name: '应纳税所得额', value: taxableIncome },
+                { name: '实际税负率', value: effectiveRate, isRate: true },
+                { name: '应纳所得税额', value: taxAmount }
+            ];
+
+            renderResult('企业所得税', [{
+                label: '应纳税额',
+                value: formatCurrency(taxAmount),
+                isRed: true
+            }, {
+                label: '实际税负率',
+                value: formatPercent(effectiveRate),
+                isRed: false
+            }], details);
+
+            addToHistory({
+                type: '企业所得税',
+                input: profit,
+                result: taxAmount,
+                time: new Date().toLocaleString()
+            });
+        }
+
+        function calculateOtherTax() {
+            const baseAmount = parseFloat(document.getElementById('other-base').value) || 0;
+            const rate = parseFloat(document.getElementById('other-rate').value);
+
+            const taxAmount = baseAmount * rate;
+            const taxName = document.getElementById('other-tax-name').value;
+
+            const details = [
+                { name: '计税依据', value: baseAmount },
+                { name: '适用税率', value: rate, isRate: true },
+                { name: '应纳税额', value: taxAmount }
+            ];
+
+            renderResult(taxName, [{
+                label: '应纳税额',
+                value: formatCurrency(taxAmount),
+                isRed: true
+            }], details);
+
+            addToHistory({
+                type: taxName,
+                input: baseAmount,
+                result: taxAmount,
+                time: new Date().toLocaleString()
+            });
+        }
+
+        function renderResult(title, summary, details) {
+            document.getElementById('result-container').classList.remove('hidden');
+            const html = `
+                <div class="result-title">${title} - 计算结果</div>
+                ${summary.map(item => `
+                    <div class="result-item">
+                        <span class="result-label">${item.label}</span>
+                        <span class="result-value ${item.isRed ? '' : 'positive'}">${item.value}</span>
+                    </div>
+                `).join('')}
+                <div class="details-section">
+                    <div class="details-title">计算明细</div>
+                    ${details.map(item => `
+                        <div class="detail-item">
+                            <span>${item.name}</span>
+                            <span style="font-weight: bold; ${item.isPositive ? 'color: #059669;' : ''}">
+                                ${item.isRate ? formatPercent(item.value) : formatCurrency(item.value)}
+                            </span>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+            document.getElementById('result-card').innerHTML = html;
+        }
+
+        function addToHistory(record) {
+            history.unshift(record);
+            if (history.length > 50) history = history.slice(0, 50);
+            localStorage.setItem('taxHistory', JSON.stringify(history));
+        }
+
+        function renderHistory() {
+            if (history.length === 0) {
+                document.getElementById('history-list').innerHTML = '<p style="text-align: center; color: #9ca3af; padding: 40px;">暂无计算历史</p>';
+                return;
+            }
+            document.getElementById('history-list').innerHTML = history.map(item => `
+                <div style="background: white; border: 1px solid #e5e7eb; border-radius: 8px; padding: 15px; margin-bottom: 10px;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                        <strong>${item.type}</strong>
+                        <span style="color: #dc2626; font-weight: bold;">${formatCurrency(item.result)}</span>
+                    </div>
+                    <div style="font-size: 12px; color: #9ca3af;">
+                        输入：${formatCurrency(item.input)} | ${item.time}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function clearHistory() {
+            if (confirm('确定要清空所有历史记录吗？')) {
+                history = [];
+                localStorage.setItem('taxHistory', '[]');
+                renderHistory();
+            }
+        }
+
+        renderHistory();
+    </script>
+</body>
+</html>
