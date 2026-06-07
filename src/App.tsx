@@ -12,7 +12,7 @@ import TabBar from './components/TabBar'
 
 function App() {
   return (
-    <BrowserRouter>
+    <BrowserRouter basename="/tax-calculator">
       <div className="min-h-screen bg-bgLight">
         <Routes>
           <Route path="/" element={<Home />} />
